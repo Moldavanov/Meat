@@ -115,7 +115,7 @@
 
         // Каждые 2 минуты (120 секунд) — переворот
         const secondsPassed = total - left;
-        if (secondsPassed > 0 && secondsPassed % 8 === 0) {
+        if (secondsPassed > 0 && secondsPassed % 120 === 0) {
           msg.textContent = "🔄 Переворачивай мясо!";
           flip.currentTime = 0;
           flip.play().catch(() => {});
