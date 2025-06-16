@@ -83,13 +83,14 @@
     let interval = null;
 
     document.addEventListener("DOMContentLoaded", function () {
-      document.getElementById("startButton").addEventListener("click", () => {
-        const timer = document.getElementById("timer");
-        const msg = document.getElementById("message");
-        const launch = document.getElementById("launchSound");
-        const flip = document.getElementById("flipSound");
-        const done = document.getElementById("doneSound");
+      const startButton = document.getElementById("startButton");
+      const timer = document.getElementById("timer");
+      const msg = document.getElementById("message");
+      const launch = document.getElementById("launchSound");
+      const flip = document.getElementById("flipSound");
+      const done = document.getElementById("doneSound");
 
+      startButton.addEventListener("click", () => {
         if (interval) clearInterval(interval);
 
         const selected = document.querySelector('input[name="meat"]:checked');
@@ -99,19 +100,21 @@
         timer.textContent = formatTime(left);
         msg.textContent = "";
 
-        launch.play().catch(() => {});
-
-        // Safari fix — «разрешаем» flip проигрываться
+        // Приманка для Safari (flip)
         flip.play().then(() => {
           flip.pause();
           flip.currentTime = 0;
         }).catch(() => {});
+
+        // Запуск "поехали"
+        launch.play().catch(() => {});
 
         interval = setInterval(() => {
           left--;
           timer.textContent = formatTime(left);
 
           if ((total - left) % 5 === 0 && left !== total) {
+            flip.currentTime = 0;
             flip.play().catch(() => {});
             msg.textContent = "🔄 Переворачивай мясо!";
           } else {
@@ -130,7 +133,7 @@
     function formatTime(sec) {
       const m = Math.floor(sec / 60);
       const s = sec % 60;
-      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
   </script>
 </body>
