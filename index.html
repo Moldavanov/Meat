@@ -101,11 +101,17 @@
 
         launch.play().catch(() => {});
 
+        // Safari fix — «разрешаем» flip проигрываться
+        flip.play().then(() => {
+          flip.pause();
+          flip.currentTime = 0;
+        }).catch(() => {});
+
         interval = setInterval(() => {
           left--;
           timer.textContent = formatTime(left);
 
-          if ((total - left) % 5 === 0 && left !== total) {
+          if ((total - left) % 120 === 0 && left !== total) {
             flip.play().catch(() => {});
             msg.textContent = "🔄 Переворачивай мясо!";
           } else {
