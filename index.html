@@ -1,89 +1,125 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <title>Шашлычный таймер</title>
-</head>
-<body style="text-align: center; font-family: sans-serif; padding: 20px;">
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
 
+    .options {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    @media (min-width: 600px) {
+      .options {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    label {
+      font-size: 18px;
+    }
+
+    #timer {
+      font-size: 48px;
+      margin: 20px 0;
+    }
+
+    #message {
+      font-size: 24px;
+      color: red;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
   <h2>🚀 Шашлычный таймер</h2>
 
-  <label style="font-size: 18px;">
-    <input type="radio" name="meat" value="20" checked> Свинина (20 мин)
-  </label>
-  <label style="font-size: 18px; margin-left: 20px;">
-    <input type="radio" name="meat" value="16"> Курица (16 мин)
-  </label>
+  <div class="options">
+    <label>
+      <input type="radio" name="meat" value="20" checked> Свинина (20 мин)
+    </label>
+    <label>
+      <input type="radio" name="meat" value="16"> Курица (16 мин)
+    </label>
+  </div>
 
-  <p id="timer" style="font-size: 48px; margin: 20px 0;">--:--</p>
-  <button id="startButton" style="padding: 10px 20px; font-size: 18px;">Старт</button>
-  <p id="message" style="font-size: 24px; color: red; margin-top: 20px;"></p>
+  <p id="timer">--:--</p>
+  <button id="startButton">Старт</button>
+  <p id="message"></p>
 
-  <!-- Аудио -->
-<audio id="launchSound" preload="auto">
-  <source src="start.mp3" type="audio/mpeg">
-</audio>
-<audio id="flipSound" preload="auto">
-  <source src="flip.mp3" type="audio/mpeg">
-</audio>
-<audio id="doneSound" preload="auto">
-  <source src="done.mp3" type="audio/mpeg">
-</audio>
+  <audio id="launchSound" preload="auto">
+    <source src="start.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="flipSound" preload="auto">
+    <source src="flip.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="doneSound" preload="auto">
+    <source src="done.mp3" type="audio/mpeg">
+  </audio>
 
+  <script>
+    let interval = null;
 
-<script>
-let interval = null;
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("startButton").addEventListener("click", () => {
+        const timer = document.getElementById("timer");
+        const msg = document.getElementById("message");
+        const launch = document.getElementById("launchSound");
+        const flip = document.getElementById("flipSound");
+        const done = document.getElementById("doneSound");
 
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("Страница загружена");
+        if (interval) clearInterval(interval);
 
-  document.getElementById("startButton").addEventListener("click", () => {
-    const timer = document.getElementById("timer");
-    const msg = document.getElementById("message");
-    const launch = document.getElementById("launchSound");
-    const flip = document.getElementById("flipSound");
-    const done = document.getElementById("doneSound");
+        const selected = document.querySelector('input[name="meat"]:checked');
+        const total = parseInt(selected.value) * 60;
+        let left = total;
 
-    if (interval) clearInterval(interval);
-    console.log("Нажата кнопка старт");
-
-    const selected = document.querySelector('input[name="meat"]:checked');
-    const total = parseInt(selected.value) * 60;
-    let left = total;
-
-    timer.textContent = formatTime(left);
-    msg.textContent = "";
-
-    launch.play().catch(e => console.warn("Звук 'поехали' не проиграл:", e));
-
-    interval = setInterval(() => {
-      left--;
-      timer.textContent = formatTime(left);
-
-      if ((total - left) % 120 === 0 && left !== total) {
-        flip.play().catch(e => console.warn("Звук flip не проиграл:", e));
-        msg.textContent = "🔄 Переворачивай мясо!";
-        console.log("Сигнал: переворот");
-      } else {
+        timer.textContent = formatTime(left);
         msg.textContent = "";
-      }
 
-      if (left <= 0) {
-        clearInterval(interval);
-        msg.textContent = "✅ Готово! Садитесь жрать, пожалуйста!";
-        done.play().catch(e => console.warn("Звук готово не проиграл:", e));
-        console.log("Таймер завершён");
-      }
-    }, 1000);
-  });
-});
+        launch.play().catch(() => {});
 
-function formatTime(sec) {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
-</script>
+        interval = setInterval(() => {
+          left--;
+          timer.textContent = formatTime(left);
+
+          if ((total - left) % 120 === 0 && left !== total) {
+            flip.play().catch(() => {});
+            msg.textContent = "🔄 Переворачивай мясо!";
+          } else {
+            msg.textContent = "";
+          }
+
+          if (left <= 0) {
+            clearInterval(interval);
+            msg.textContent = "✅ Готово! Садитесь жрать, пожалуйста!";
+            done.play().catch(() => {});
+          }
+        }, 1000);
+      });
+    });
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+  </script>
 </body>
 </html>
