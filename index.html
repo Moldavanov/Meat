@@ -79,62 +79,65 @@
     <source src="done.mp3" type="audio/mpeg">
   </audio>
 
-  <script>
-    let interval = null;
+ <script>
+  let interval = null;
 
-    document.addEventListener("DOMContentLoaded", function () {
-      const startButton = document.getElementById("startButton");
-      const timer = document.getElementById("timer");
-      const msg = document.getElementById("message");
-      const launch = document.getElementById("launchSound");
-      const flip = document.getElementById("flipSound");
-      const done = document.getElementById("doneSound");
+  document.addEventListener("DOMContentLoaded", function () {
+    const startButton = document.getElementById("startButton");
+    const timer = document.getElementById("timer");
+    const msg = document.getElementById("message");
+    const launch = document.getElementById("launchSound");
+    const flip = document.getElementById("flipSound");
+    const done = document.getElementById("doneSound");
 
-      startButton.addEventListener("click", () => {
-        if (interval) clearInterval(interval);
+    startButton.addEventListener("click", () => {
+      if (interval) clearInterval(interval);
 
-        const selected = document.querySelector('input[name="meat"]:checked');
-        const total = parseInt(selected.value) * 60;
-        let left = total;
+      const selected = document.querySelector('input[name="meat"]:checked');
+      const total = parseInt(selected.value) * 60;
+      let left = total;
 
+      timer.textContent = formatTime(left);
+      msg.textContent = "";
+
+      // Приманка для Safari
+      flip.play().then(() => {
+        flip.pause();
+        flip.currentTime = 0;
+      }).catch(() => {});
+
+      // "Поехали"
+      launch.play().catch(() => {});
+
+      interval = setInterval(() => {
+        left--;
         timer.textContent = formatTime(left);
-        msg.textContent = "";
 
-        // Приманка для Safari (flip)
-        flip.play().then(() => {
-          flip.pause();
+        // Каждые 2 минуты (120 секунд) — переворот
+        const secondsPassed = total - left;
+        if (secondsPassed > 0 && secondsPassed % 8 === 0) {
+          msg.textContent = "🔄 Переворачивай мясо!";
           flip.currentTime = 0;
-        }).catch(() => {});
+          flip.play().catch(() => {});
+        } else {
+          msg.textContent = "";
+        }
 
-        // Запуск "поехали"
-        launch.play().catch(() => {});
-
-        interval = setInterval(() => {
-          left--;
-          timer.textContent = formatTime(left);
-
-          if ((total - left) % 5 === 0 && left !== total) {
-            flip.currentTime = 0;
-            flip.play().catch(() => {});
-            msg.textContent = "🔄 Переворачивай мясо!";
-          } else {
-            msg.textContent = "";
-          }
-
-          if (left <= 0) {
-            clearInterval(interval);
-            msg.textContent = "✅ Готово! Садитесь жрать, пожалуйста!";
-            done.play().catch(() => {});
-          }
-        }, 1000);
-      });
+        if (left <= 0) {
+          clearInterval(interval);
+          msg.textContent = "✅ Готово! Садитесь жрать, пожалуйста!";
+          done.play().catch(() => {});
+        }
+      }, 1000);
     });
+  });
 
-    function formatTime(sec) {
-      const m = Math.floor(sec / 60);
-      const s = sec % 60;
-      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    }
-  </script>
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+</script>
+
 </body>
 </html>
