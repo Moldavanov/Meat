@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Шашлычный таймер Гагарина</title>
+</head>
+<body style="text-align: center; font-family: sans-serif; padding: 20px;">
+
+  <h2>🚀 Шашлычный таймер имени Гагарина</h2>
+
+  <label style="font-size: 18px;">
+    <input type="radio" name="meat" value="20" checked> Свинина (20 мин)
+  </label>
+  <label style="font-size: 18px; margin-left: 20px;">
+    <input type="radio" name="meat" value="16"> Курица (16 мин)
+  </label>
+
+  <p id="timer" style="font-size: 48px; margin: 20px 0;">--:--</p>
+  <button id="startButton" style="padding: 10px 20px; font-size: 18px;">🚀 Старт</button>
+  <p id="message" style="font-size: 24px; color: red; margin-top: 20px;"></p>
+
+  <!-- Аудио -->
+  <audio id="launchSound" preload="auto">
+    <source src="https://cdn.pixabay.com/audio/2022/03/21/audio_6b0dc711dc.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="flipSound" preload="auto">
+    <source src="https://cdn.pixabay.com/audio/2022/10/01/audio_295e4ebee6.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="doneSound" preload="auto">
+    <source src="https://cdn.pixabay.com/audio/2023/02/28/audio_4c9d76dc62.mp3" type="audio/mpeg">
+  </audio>
+
+<script>
+let interval = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+  document.getElementById("startButton").addEventListener("click", () => {
+    const timer = document.getElementById("timer");
+    const msg = document.getElementById("message");
+    const launch = document.getElementById("launchSound");
+    const flip = document.getElementById("flipSound");
+    const done = document.getElementById("doneSound");
+
+    if (interval) clearInterval(interval);
+
+    const selected = document.querySelector('input[name="meat"]:checked');
+    const total = parseInt(selected.value) * 60;
+    let left = total;
+
+    timer.textContent = formatTime(left);
+    msg.textContent = "";
+
+    // Играем "Поехали!" и после окончания — таймер
+    launch.play().then(() => {
+      launch.onended = () => {
+        interval = setInterval(() => {
+          left--;
+          timer.textContent = formatTime(left);
+
+          if ((total - left) % 120 === 0 && left !== total) {
+            flip.play().catch(() => {});
+            msg.textContent = "🔄 Переворачивай мясо!";
+          } else {
+            msg.textContent = "";
+          }
+
+          if (left <= 0) {
+            clearInterval(interval);
+            msg.textContent = "✅ Готово! Садитесь жрать, пожалуйста!";
+            done.play().catch(() => {});
+          }
+        }, 1000);
+      };
+    }).catch(() => {
+      alert("⚠️ Браузер не разрешил звук. Кликни по странице и нажми ещё раз.");
+    });
+  });
+});
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+</script>
+</body>
+</html>
