@@ -6,25 +6,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    html, body {
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+    html {
+      scroll-behavior: smooth;
     }
     body {
       font-family: 'Inter', sans-serif;
-      padding: 0;
       margin: 0;
       background: linear-gradient(145deg, #f0f0f0, #ffffff);
       color: #333;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
     h1 {
       text-align: center;
-      margin: 16px 0 8px;
+      margin: 16px 10px 8px;
       font-size: 16px;
     }
     h2 {
       text-align: center;
-      margin: 24px 0 12px;
+      margin: 24px 10px 12px;
     }
     form {
       background: #fff;
@@ -125,11 +125,12 @@
       margin: 20px auto;
       font-weight: bold;
       font-size: 16px;
+      padding: 0 10px;
     }
   </style>
 </head>
 <body>
-  <h1>🐾 Кто был на прогулке?</h1>
+  <h1>🐾 Кто гулял?</h1>
   <form id="visitForm">
     <div id="checkboxes"></div>
     <button type="submit">Сохранить</button>
@@ -137,12 +138,12 @@
   <div id="result"></div>
   <iframe id="submitFrame" style="display:none;"></iframe>
 
-  <h2>📅 История прогулок</h2>
+  <h2>📅 История</h2>
   <div class="table-container">
     <table id="historyTable"></table>
   </div>
 
-  <h2>🏆 Рейтинг посещаемости</h2>
+  <h2>🏆 Рейтинг</h2>
   <div class="rating" id="rating"></div>
   <div id="punishment"></div>
 
