@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Дневник прогулок</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 10px;
+    }
+    h2 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .names {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+    .names label {
+      display: flex;
+      align-items: center;
+      background: #f0f0f0;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 16px;
+    }
+    .names input {
+      margin-right: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    #status {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 4px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    .rating {
+      margin-top: 20px;
+    }
+    .rating h3 {
+      font-size: 18px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .rating ul {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+    }
+    .rating li {
+      margin: 3px 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>🐾 Дневник прогулок</h2>
+  <div class="names" id="checkboxes"></div>
+  <button id="save">Сохранить</button>
+  <div id="status"></div>
+  <table id="history"></table>
+  <div class="rating">
+    <h3>📊 Рейтинг посещаемости</h3>
+    <ul id="ranking"></ul>
+  </div>
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbwd9H6HDIiTgsiPuIOWb07tVrBllZB_tzxIV8wH11W0jmuYv64KNRzmT7d-40JHwmFWNA/exec";
+    const names = [["Яна Сайгон", "🐾"], ["Паша Сайгон", "🐶"], ["Олеся", "🏃"], ["Слава", "🐕‍🦺"], ["Таня", "🚶"], ["Паша Персик", "🌳"], ["Кирилл", "🦴"], ["Оля", "🐕"], ["Инна", "🦊"], ["Яна Арчи", "🐩"], ["Саша", "🌲"]];
+
+    function createCheckboxes() {
+      const container = document.getElementById("checkboxes");
+      names.forEach(([name, emoji]) => {
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = name;
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(" " + emoji + " " + name));
+        container.appendChild(label);
+      });
+    }
+
+    function getTodayDate() {
+      const today = new Date();
+      return today.toISOString().split("T")[0];
+    }
+
+    document.getElementById("save").addEventListener("click", () => {
+      const marked = Array.from(document.querySelectorAll("input[type=checkbox]:checked")).map(cb => cb.value);
+      const payload = {
+        date: getTodayDate(),
+        names: names.map(([n]) => n),
+        marked: marked
+      };
+
+      fetch(endpoint, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(res => res.text())
+      .then(() => {
+        document.getElementById("status").innerText = "✅ Сохранено!";
+        loadHistory();
+      })
+      .catch(() => {
+        document.getElementById("status").innerText = "❌ Ошибка сохранения";
+      });
+    });
+
+    function loadHistory() {
+      fetch(endpoint)
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById("history");
+          const ranking = document.getElementById("ranking");
+          table.innerHTML = "";
+          ranking.innerHTML = "";
+
+          const [headers, ...rows] = data;
+          const nameIndex = Object.fromEntries(headers.map((h, i) => [h, i]));
+
+          const thead = document.createElement("tr");
+          headers.forEach(h => {
+            const th = document.createElement("th");
+            th.textContent = h;
+            thead.appendChild(th);
+          });
+          table.appendChild(thead);
+
+          rows.forEach(row => {
+            const tr = document.createElement("tr");
+            row.forEach(cell => {
+              const td = document.createElement("td");
+              td.textContent = cell === 1 ? "✅" : cell;
+              tr.appendChild(td);
+            });
+            table.appendChild(tr);
+          });
+
+          // рейтинг
+          const counters = {};
+          names.forEach(([n]) => counters[n] = 0);
+          rows.forEach(row => {
+            names.forEach(([n]) => {
+              const idx = nameIndex[n];
+              if (row[idx] === 1) counters[n]++;
+            });
+          });
+
+          const sorted = Object.entries(counters).sort((a,b) => b[1] - a[1]);
+          sorted.forEach(([n, count]) => {
+            const emoji = names.find(([name]) => name === n)[1];
+            const li = document.createElement("li");
+            li.textContent = `${emoji} ${n} — ${count} прогулок`;
+            ranking.appendChild(li);
+          });
+        });
+    }
+
+    createCheckboxes();
+    loadHistory();
+  </script>
+</body>
+</html>
