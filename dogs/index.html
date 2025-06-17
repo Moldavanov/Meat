@@ -13,7 +13,12 @@
       background: linear-gradient(145deg, #f0f0f0, #ffffff);
       color: #333;
     }
-    h1, h2 {
+    h1 {
+      text-align: center;
+      margin: 16px 0 8px;
+      font-size: 20px;
+    }
+    h2 {
       text-align: center;
       margin: 24px 0 12px;
     }
@@ -111,6 +116,12 @@
     .rating span.count {
       color: #ff8c00;
     }
+    #punishment {
+      text-align: center;
+      margin: 20px auto;
+      font-weight: bold;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -129,6 +140,7 @@
 
   <h2>🏆 Рейтинг посещаемости</h2>
   <div class="rating" id="rating"></div>
+  <div id="punishment"></div>
 
   <script>
     const endpoint = "https://script.google.com/macros/s/AKfycbwd9H6HDIiTgsiPuIOWb07tVrBllZB_tzxIV8wH11W0jmuYv64KNRzmT7d-40JHwmFWNA/exec";
@@ -145,6 +157,7 @@
     const iframe = document.getElementById("submitFrame");
     const historyTable = document.getElementById("historyTable");
     const ratingDiv = document.getElementById("rating");
+    const punishmentDiv = document.getElementById("punishment");
 
     names.forEach((name, i) => {
       const label = document.createElement("label");
@@ -201,6 +214,7 @@
         historyTable.appendChild(headerRow);
 
         let counts = new Array(names.length).fill(0);
+        let latestDate = null;
 
         for (let i = 1; i < data.length; i++) {
           const row = document.createElement("tr");
@@ -208,6 +222,7 @@
             const td = document.createElement("td");
             if (idx === 0) {
               td.textContent = formatDate(cell);
+              latestDate = new Date(cell);
             } else {
               td.textContent = cell ? "✓" : "";
               td.className = cell ? "present" : "absent";
@@ -221,6 +236,16 @@
         const stats = names.map((n, i) => ({ name: n, count: counts[i], emoji: emojis[i % emojis.length] }));
         stats.sort((a, b) => b.count - a.count);
         ratingDiv.innerHTML = stats.map(s => `<div><span class="name">${s.emoji} ${s.name}</span>: <span class="count">${s.count}</span></div>`).join("");
+
+        const worst = stats[stats.length - 1];
+        const now = new Date();
+        const currentMonth = now.toLocaleDateString("ru-RU", { month: 'long' });
+
+        if (latestDate && latestDate.getMonth() !== now.getMonth()) {
+          punishmentDiv.textContent = `В ${currentMonth} слабым звеном была ${worst.name}. ${worst.name} проставляется.`;
+        } else {
+          punishmentDiv.textContent = `Месяц пока не кончился, но пока, скорее всего, проставляться будет ${worst.name}.`;
+        }
 
       } catch (err) {
         console.error("Ошибка загрузки истории:", err);
