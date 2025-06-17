@@ -129,4 +129,121 @@
   </style>
 </head>
 <body>
-<!-- остальной код без изменений -->
+  <h1>🐾 Кто был на прогулке?</h1>
+  <form id="visitForm">
+    <div id="checkboxes"></div>
+    <button type="submit">Сохранить</button>
+  </form>
+  <div id="result"></div>
+  <iframe id="submitFrame" style="display:none;"></iframe>
+
+  <h2>📅 История прогулок</h2>
+  <div class="table-container">
+    <table id="historyTable"></table>
+  </div>
+
+  <h2>🏆 Рейтинг посещаемости</h2>
+  <div class="rating" id="rating"></div>
+  <div id="punishment"></div>
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbwd9H6HDIiTgsiPuIOWb07tVrBllZB_tzxIV8wH11W0jmuYv64KNRzmT7d-40JHwmFWNA/exec";
+    const names = ["Яна Сайгон", "Паша Сайгон", "Олеся", "Слава", "Таня", "Паша Персик", "Кирилл", "Оля", "Инна", "Яна Арчи", "Саша"];
+    const emojis = ["🐶", "🐕", "🦴", "🦮", "🐾", "🦊", "🐕‍🦺", "🌭", "🎾", "🐿️", "🐩"];
+
+    const form = document.getElementById("visitForm");
+    const checkboxesContainer = document.getElementById("checkboxes");
+    const result = document.getElementById("result");
+    const iframe = document.getElementById("submitFrame");
+    const historyTable = document.getElementById("historyTable");
+    const ratingDiv = document.getElementById("rating");
+    const punishmentDiv = document.getElementById("punishment");
+
+    names.forEach((name, i) => {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.name = name;
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(" " + emojis[i % emojis.length] + " " + name));
+      checkboxesContainer.appendChild(label);
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const marked = Array.from(form.elements)
+        .filter(el => el.type === "checkbox" && el.checked)
+        .map(el => encodeURIComponent(el.name));
+      const encodedNames = names.map(encodeURIComponent).join(",");
+      const encodedMarked = marked.join(",");
+      const date = new Date().toISOString().split("T")[0];
+      const url = `${endpoint}?date=${date}&names=${encodedNames}&marked=${encodedMarked}`;
+      iframe.src = url;
+      result.textContent = "✅ Сохранено!";
+      setTimeout(loadHistory, 1500);
+    });
+
+    function formatDate(isoDate) {
+      const d = new Date(isoDate);
+      return d.toLocaleDateString("ru-RU", { year: "numeric", month: "long", day: "numeric" });
+    }
+
+    async function loadHistory() {
+      try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        if (!data || data.length < 2) return;
+        historyTable.innerHTML = "";
+        const headerRow = document.createElement("tr");
+        data[0].forEach((header, idx) => {
+          const th = document.createElement("th");
+          if (idx === 0) {
+            th.textContent = "Дата";
+          } else {
+            th.textContent = emojis[(idx - 1) % emojis.length] + " " + header;
+          }
+          headerRow.appendChild(th);
+        });
+        historyTable.appendChild(headerRow);
+
+        let counts = new Array(names.length).fill(0);
+        let latestDate = null;
+
+        for (let i = 1; i < data.length; i++) {
+          const row = document.createElement("tr");
+          data[i].forEach((cell, idx) => {
+            const td = document.createElement("td");
+            if (idx === 0) {
+              td.textContent = formatDate(cell);
+              latestDate = new Date(cell);
+            } else {
+              td.textContent = cell ? "✓" : "";
+              td.className = cell ? "present" : "absent";
+              if (cell) counts[idx - 1]++;
+            }
+            row.appendChild(td);
+          });
+          historyTable.appendChild(row);
+        }
+
+        const stats = names.map((n, i) => ({ name: n, count: counts[i], emoji: emojis[i % emojis.length] }));
+        stats.sort((a, b) => b.count - a.count);
+        ratingDiv.innerHTML = stats.map(s => `<div><span class="name">${s.emoji} ${s.name}</span>: <span class="count">${s.count}</span></div>`).join("");
+
+        const worst = stats[stats.length - 1];
+        const now = new Date();
+        const currentMonth = now.toLocaleDateString("ru-RU", { month: 'long' });
+        if (latestDate && latestDate.getMonth() !== now.getMonth()) {
+          punishmentDiv.textContent = `В ${currentMonth} слабым звеном была ${worst.name}. ${worst.name} проставляется 🍾.`;
+        } else {
+          punishmentDiv.textContent = `Месяц пока не кончился, но пока, скорее всего, проставляться будет ${worst.name} 🍾.`;
+        }
+      } catch (err) {
+        console.error("Ошибка загрузки истории:", err);
+      }
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>
