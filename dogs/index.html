@@ -4,78 +4,117 @@
   <meta charset="UTF-8">
   <title>Дневник прогулок</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: sans-serif;
-      padding: 10px;
+      font-family: 'Inter', sans-serif;
+      padding: 0;
       margin: 0;
-      background: #f5f5f5;
+      background: linear-gradient(145deg, #f0f0f0, #ffffff);
+      color: #333;
     }
     h1, h2 {
       text-align: center;
-      margin: 16px 0;
+      margin: 24px 0 12px;
+    }
+    form {
+      background: #fff;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
     }
     label {
-      display: block;
-      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+      gap: 10px;
+    }
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
     }
     button {
-      margin-top: 10px;
-      padding: 8px 16px;
+      width: 100%;
+      background: #007bff;
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      padding: 12px;
+      margin-top: 20px;
       font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
     }
     #result {
-      margin-top: 10px;
-      font-weight: bold;
+      margin-top: 12px;
       text-align: center;
+      font-weight: bold;
+      color: #28a745;
     }
     .table-container {
-      margin-top: 30px;
-      overflow-x: auto;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: 30px auto;
       padding: 10px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow-x: auto;
+      max-width: 90vw;
     }
     table {
       border-collapse: collapse;
       width: 100%;
-      min-width: 600px;
+      min-width: 700px;
+      font-size: 14px;
     }
     th, td {
-      border: 1px solid #ccc;
-      padding: 6px;
+      border: 1px solid #ddd;
+      padding: 8px;
       text-align: center;
     }
     th {
-      background: #eee;
+      background: #f9f9f9;
+      font-weight: 600;
       position: sticky;
       top: 0;
       z-index: 1;
     }
     .present {
-      background: #d4edda;
-      color: #155724;
+      background: #e3fcec;
+      color: #218838;
     }
     .absent {
-      background: #f8d7da;
-      color: #721c24;
+      background: #fcebea;
+      color: #c82333;
     }
     .rating {
-      margin-top: 30px;
-      font-size: 16px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 500px;
+      font-size: 15px;
+    }
+    .rating div {
+      margin: 6px 0;
     }
     .rating span.name {
-      color: green;
-      font-weight: bold;
+      color: #006400;
+      font-weight: 600;
     }
     .rating span.count {
-      color: orange;
+      color: #ff8c00;
     }
   </style>
 </head>
 <body>
-  <h1>Кто был на прогулке?</h1>
+  <h1>🐾 Кто был на прогулке?</h1>
   <form id="visitForm">
     <div id="checkboxes"></div>
     <button type="submit">Сохранить</button>
@@ -83,12 +122,12 @@
   <div id="result"></div>
   <iframe id="submitFrame" style="display:none;"></iframe>
 
-  <h2>История</h2>
+  <h2>📅 История прогулок</h2>
   <div class="table-container">
     <table id="historyTable"></table>
   </div>
 
-  <h2>Рейтинг посещаемости</h2>
+  <h2>🏆 Рейтинг посещаемости</h2>
   <div class="rating" id="rating"></div>
 
   <script>
@@ -98,6 +137,8 @@
       "Паша Персик", "Кирилл", "Оля", "Инна", "Яна Арчи", "Саша"
     ];
 
+    const emojis = ["🐶", "🐕", "🦴", "🦮", "🐾", "🦊", "🐕‍🦺", "🌭", "🎾", "🐿️", "🐩"];
+
     const form = document.getElementById("visitForm");
     const checkboxesContainer = document.getElementById("checkboxes");
     const result = document.getElementById("result");
@@ -105,13 +146,13 @@
     const historyTable = document.getElementById("historyTable");
     const ratingDiv = document.getElementById("rating");
 
-    names.forEach(name => {
+    names.forEach((name, i) => {
       const label = document.createElement("label");
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.name = name;
       label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(" " + name));
+      label.appendChild(document.createTextNode(" " + emojis[i % emojis.length] + " " + name));
       checkboxesContainer.appendChild(label);
     });
 
@@ -131,6 +172,15 @@
       setTimeout(loadHistory, 1500);
     });
 
+    function formatDate(isoDate) {
+      const d = new Date(isoDate);
+      return d.toLocaleDateString("ru-RU", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    }
+
     async function loadHistory() {
       try {
         const res = await fetch(endpoint);
@@ -139,9 +189,13 @@
 
         historyTable.innerHTML = "";
         const headerRow = document.createElement("tr");
-        data[0].forEach(header => {
+        data[0].forEach((header, idx) => {
           const th = document.createElement("th");
-          th.textContent = header;
+          if (idx === 0) {
+            th.textContent = "Дата";
+          } else {
+            th.textContent = emojis[(idx - 1) % emojis.length] + " " + header;
+          }
           headerRow.appendChild(th);
         });
         historyTable.appendChild(headerRow);
@@ -153,7 +207,7 @@
           data[i].forEach((cell, idx) => {
             const td = document.createElement("td");
             if (idx === 0) {
-              td.textContent = cell;
+              td.textContent = formatDate(cell);
             } else {
               td.textContent = cell ? "✓" : "";
               td.className = cell ? "present" : "absent";
@@ -164,10 +218,9 @@
           historyTable.appendChild(row);
         }
 
-        // Рейтинг
-        const stats = names.map((n, i) => ({ name: n, count: counts[i] }));
+        const stats = names.map((n, i) => ({ name: n, count: counts[i], emoji: emojis[i % emojis.length] }));
         stats.sort((a, b) => b.count - a.count);
-        ratingDiv.innerHTML = stats.map(s => `<div><span class="name">${s.name}</span>: <span class="count">${s.count}</span></div>`).join("");
+        ratingDiv.innerHTML = stats.map(s => `<div><span class="name">${s.emoji} ${s.name}</span>: <span class="count">${s.count}</span></div>`).join("");
 
       } catch (err) {
         console.error("Ошибка загрузки истории:", err);
