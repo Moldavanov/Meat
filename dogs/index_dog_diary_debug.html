@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Дневник прогулок — Debug</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 10px;
+      margin: 0;
+    }
+    h1 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin: 8px 0;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 16px;
+    }
+    #result {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    #history {
+      margin-top: 20px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 4px;
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      label {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Кто был на прогулке?</h1>
+  <form id="visitForm">
+    <div id="checkboxes"></div>
+    <button type="submit">Сохранить</button>
+  </form>
+  <div id="result"></div>
+  <div id="history"><h2>История</h2><div id="historyTable"></div></div>
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbwd9H6HDIiTgsiPuIOWb07tVrBllZB_tzxIV8wH11W0jmuYv64KNRzmT7d-40JHwmFWNA/exec";
+    const names = [
+      "Яна Сайгон", "Паша Сайгон", "Олеся", "Слава", "Таня",
+      "Паша Персик", "Кирилл", "Оля", "Инна", "Яна Арчи", "Саша"
+    ];
+
+    const form = document.getElementById("visitForm");
+    const checkboxesContainer = document.getElementById("checkboxes");
+    const result = document.getElementById("result");
+    const historyDiv = document.getElementById("historyTable");
+
+    names.forEach(name => {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.name = name;
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(" " + name));
+      checkboxesContainer.appendChild(label);
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const marked = Array.from(form.elements)
+        .filter(el => el.type === "checkbox" && el.checked)
+        .map(el => el.name);
+
+      const payload = {
+        date: new Date().toISOString().split("T")[0],
+        names,
+        marked
+      };
+
+      console.log("▶ Отправляем payload:", payload);
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          body: JSON.stringify(payload),
+          headers: { "Content-Type": "application/json" }
+        });
+
+        console.log("📥 Ответ от сервера:", res);
+        const text = await res.text();
+        console.log("📄 Текст ответа:", text);
+
+        if (text.trim() === "OK") {
+          result.textContent = "✅ Сохранено!";
+          loadHistory();
+        } else {
+          result.textContent = "❌ Ошибка сохранения: " + text;
+        }
+      } catch (err) {
+        result.textContent = "❌ Ошибка соединения: " + err;
+        console.error("🔥 Ошибка при запросе:", err);
+      }
+    });
+
+    async function loadHistory() {
+      try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        console.log("📚 История загружена:", data);
+
+        if (!data || data.length < 2) {
+          historyDiv.innerHTML = "<p>История пока пуста.</p>";
+          return;
+        }
+
+        let html = "<table><tr>" + data[0].map(h => `<th>${h}</th>`).join("") + "</tr>";
+        for (let i = 1; i < data.length; i++) {
+          html += "<tr>" + data[i].map(c => `<td>${c || ""}</td>`).join("") + "</tr>";
+        }
+        html += "</table>";
+        historyDiv.innerHTML = html;
+      } catch (e) {
+        historyDiv.innerHTML = "<p>Не удалось загрузить историю.</p>";
+        console.error("Ошибка при загрузке истории:", e);
+      }
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>
