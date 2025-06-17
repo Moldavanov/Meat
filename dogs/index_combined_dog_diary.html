@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Дневник прогулок</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 10px;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    h1, h2 {
+      text-align: center;
+      margin: 16px 0;
+    }
+    label {
+      display: block;
+      margin: 8px 0;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 16px;
+    }
+    #result {
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .table-container {
+      margin-top: 30px;
+      overflow-x: auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 10px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 600px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background: #eee;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .present {
+      background: #d4edda;
+      color: #155724;
+    }
+    .absent {
+      background: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <h1>Кто был на прогулке?</h1>
+  <form id="visitForm">
+    <div id="checkboxes"></div>
+    <button type="submit">Сохранить</button>
+  </form>
+  <div id="result"></div>
+  <iframe id="submitFrame" style="display:none;"></iframe>
+
+  <h2>История</h2>
+  <div class="table-container">
+    <table id="historyTable"></table>
+  </div>
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbwd9H6HDIiTgsiPuIOWb07tVrBllZB_tzxIV8wH11W0jmuYv64KNRzmT7d-40JHwmFWNA/exec";
+    const names = [
+      "Яна Сайгон", "Паша Сайгон", "Олеся", "Слава", "Таня",
+      "Паша Персик", "Кирилл", "Оля", "Инна", "Яна Арчи", "Саша"
+    ];
+
+    const form = document.getElementById("visitForm");
+    const checkboxesContainer = document.getElementById("checkboxes");
+    const result = document.getElementById("result");
+    const iframe = document.getElementById("submitFrame");
+    const historyTable = document.getElementById("historyTable");
+
+    names.forEach(name => {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.name = name;
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(" " + name));
+      checkboxesContainer.appendChild(label);
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const marked = Array.from(form.elements)
+        .filter(el => el.type === "checkbox" && el.checked)
+        .map(el => encodeURIComponent(el.name));
+
+      const encodedNames = names.map(encodeURIComponent).join(",");
+      const encodedMarked = marked.join(",");
+      const date = new Date().toISOString().split("T")[0];
+
+      const url = `${endpoint}?date=${date}&names=${encodedNames}&marked=${encodedMarked}`;
+      iframe.src = url;
+      result.textContent = "✅ Сохранено!";
+      setTimeout(loadHistory, 1500);
+    });
+
+    async function loadHistory() {
+      try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        if (!data || data.length < 2) return;
+
+        historyTable.innerHTML = "";
+        const headerRow = document.createElement("tr");
+        data[0].forEach(header => {
+          const th = document.createElement("th");
+          th.textContent = header;
+          headerRow.appendChild(th);
+        });
+        historyTable.appendChild(headerRow);
+
+        for (let i = 1; i < data.length; i++) {
+          const row = document.createElement("tr");
+          data[i].forEach((cell, idx) => {
+            const td = document.createElement("td");
+            if (idx === 0) {
+              td.textContent = cell;
+            } else {
+              td.textContent = cell ? "✓" : "";
+              td.className = cell ? "present" : "absent";
+            }
+            row.appendChild(td);
+          });
+          historyTable.appendChild(row);
+        }
+      } catch (err) {
+        console.error("Ошибка загрузки истории:", err);
+      }
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>
