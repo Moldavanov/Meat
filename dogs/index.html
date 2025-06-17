@@ -3,9 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Дневник прогулок</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    html, body {
+      height: 100%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     body {
       font-family: 'Inter', sans-serif;
       padding: 0;
@@ -16,7 +21,7 @@
     h1 {
       text-align: center;
       margin: 16px 0 8px;
-      font-size: 20px;
+      font-size: 18px;
     }
     h2 {
       text-align: center;
@@ -125,7 +130,7 @@
   </style>
 </head>
 <body>
-  <h1>🐾 Кто был на прогулке?</h1>
+  <h1>🐾 Кто гулял </h1>
   <form id="visitForm">
     <div id="checkboxes"></div>
     <button type="submit">Сохранить</button>
@@ -133,12 +138,12 @@
   <div id="result"></div>
   <iframe id="submitFrame" style="display:none;"></iframe>
 
-  <h2>📅 История прогулок</h2>
+  <h2>📅 История </h2>
   <div class="table-container">
     <table id="historyTable"></table>
   </div>
 
-  <h2>🏆 Рейтинг посещаемости</h2>
+  <h2>🏆 Рейтинг </h2>
   <div class="rating" id="rating"></div>
   <div id="punishment"></div>
 
@@ -242,9 +247,9 @@
         const currentMonth = now.toLocaleDateString("ru-RU", { month: 'long' });
 
         if (latestDate && latestDate.getMonth() !== now.getMonth()) {
-          punishmentDiv.textContent = `В ${currentMonth} слабым звеном была ${worst.name}. ${worst.name} проставляется.`;
+          punishmentDiv.textContent = `В ${currentMonth} слабым звеном была ${worst.name}. ${worst.name} проставляется 🍾.`;
         } else {
-          punishmentDiv.textContent = `Месяц пока не кончился, но пока, скорее всего, проставляться будет ${worst.name}.`;
+          punishmentDiv.textContent = `Месяц пока не кончился, но пока, скорее всего, проставляться будет ${worst.name} 🍾.`;
         }
 
       } catch (err) {
