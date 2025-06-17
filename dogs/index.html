@@ -7,7 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     html, body {
-      height: 100%;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -21,7 +20,7 @@
     h1 {
       text-align: center;
       margin: 16px 0 8px;
-      font-size: 18px;
+      font-size: 16px;
     }
     h2 {
       text-align: center;
@@ -130,7 +129,7 @@
   </style>
 </head>
 <body>
-  <h1>🐾 Кто гулял </h1>
+  <h1>🐾 Кто был на прогулке?</h1>
   <form id="visitForm">
     <div id="checkboxes"></div>
     <button type="submit">Сохранить</button>
@@ -138,12 +137,12 @@
   <div id="result"></div>
   <iframe id="submitFrame" style="display:none;"></iframe>
 
-  <h2>📅 История </h2>
+  <h2>📅 История прогулок</h2>
   <div class="table-container">
     <table id="historyTable"></table>
   </div>
 
-  <h2>🏆 Рейтинг </h2>
+  <h2>🏆 Рейтинг посещаемости</h2>
   <div class="rating" id="rating"></div>
   <div id="punishment"></div>
 
