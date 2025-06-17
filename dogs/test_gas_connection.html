@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>GAS Test</title>
+</head>
+<body>
+  <h2>Проверка соединения с Google Таблицей</h2>
+  <div id="output">⏳ Проверяем...</div>
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbwd9H6HDIiTgsiPuIOWb07tVrBllZB_tzxIV8wH11W0jmuYv64KNRzmT7d-40JHwmFWNA/exec";
+
+    fetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify({
+        date: "2025-06-16",
+        names: ["Тест"],
+        marked: ["Тест"]
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    .then(res => res.text())
+    .then(txt => {
+      document.getElementById("output").innerText = "✅ Ответ получен: " + txt;
+    })
+    .catch(err => {
+      document.getElementById("output").innerText = "❌ Ошибка: " + err;
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
